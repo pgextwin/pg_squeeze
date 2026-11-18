@@ -33,6 +33,25 @@ index 96f6b27..8583cee 100644
  /*
   * The same for interactive start of the worker. In this case we can no longer
   * add anything to the TopMemoryContext of postmaster, so
+diff --git a/pgstatapprox.c b/pgstatapprox.c
+--- a/pgstatapprox.c
++++ b/pgstatapprox.c
+@@ -276,13 +276,14 @@
+ 	if (!(rel->rd_rel->relkind == RELKIND_RELATION ||
+ 		  rel->rd_rel->relkind == RELKIND_MATVIEW ||
+ 		  rel->rd_rel->relkind == RELKIND_TOASTVALUE))
++#if PG_VERSION_NUM >= 150000
+ 		ereport(ERROR,
+-#if PG_VERSION_NUM >= 150000
+ 				(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+ 				 errmsg("relation \"%s\" is of wrong relation kind",
+ 						RelationGetRelationName(rel)),
+ 				 errdetail_relkind_not_supported(rel->rd_rel->relkind)));
+ #else
++		ereport(ERROR,
+ 				(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+ 				 errmsg("\"%s\" is not a table, materialized view, or TOAST table",
+ 						RelationGetRelationName(rel))));
 diff --git a/worker.c b/worker.c
 index 815c4f8..e94f145 100644
 --- a/worker.c
