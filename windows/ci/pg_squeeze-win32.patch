@@ -1,0 +1,103 @@
+diff --git a/pg_squeeze.c b/pg_squeeze.c
+index 13cc0c2..8067e6a 100644
+--- a/pg_squeeze.c
++++ b/pg_squeeze.c
+@@ -74,7 +74,7 @@ extern PGDLLIMPORT bool FirstSnapshotSet;
+ #endif
+ 
+ #ifdef PG_MODULE_MAGIC_EXT
+-PG_MODULE_MAGIC_EXT(.name = "pg_squeeze", .version = "1.9.3");
++PG_MODULE_MAGIC_EXT(.name = "pg_squeeze", .version = "1.9.4");
+ #else
+ PG_MODULE_MAGIC;
+ #endif
+diff --git a/pg_squeeze.h b/pg_squeeze.h
+index 96f6b27..8583cee 100644
+--- a/pg_squeeze.h
++++ b/pg_squeeze.h
+@@ -248,6 +248,17 @@ typedef struct WorkerConInit
+ 	char	   *rolename;
+ } WorkerConInit;
+ 
++#ifdef WIN32
++#define SQUEEZE_WIN32_BGWORKER_AUTOSTART 1
++
++/* Windows workers need connection data that can cross a process boundary. */
++typedef struct WorkerConInitWin32
++{
++	char		dbname[NAMEDATALEN];
++	char		rolename[NAMEDATALEN];
++} WorkerConInitWin32;
++#endif
++
+ /*
+  * The same for interactive start of the worker. In this case we can no longer
+  * add anything to the TopMemoryContext of postmaster, so
+diff --git a/worker.c b/worker.c
+index 815c4f8..e94f145 100644
+--- a/worker.c
++++ b/worker.c
+@@ -745,8 +745,7 @@ start_worker_internal(bool scheduler, int task_idx,
+  * Convenience routine to allocate the structure in TopMemoryContext. We need
+  * it to survive fork and initialization of the worker.
+  *
+- * (The allocation cannot be avoided as BackgroundWorker.bgw_extra does not
+- * provide enough space for us.)
++ * On Windows only the names are copied into BackgroundWorker.bgw_extra.
+  */
+ WorkerConInit *
+ allocate_worker_con_info(char *dbname, char *rolename)
+@@ -786,7 +785,20 @@ squeeze_initialize_bgworker(BackgroundWorker *worker,
+ 
+ 	if (con_init != NULL)
+ 	{
++#ifdef WIN32
++		WorkerConInitWin32 con;
++
++		StaticAssertStmt(sizeof(WorkerConInitWin32) <= BGW_EXTRALEN,
++						 "WorkerConInitWin32 is too big");
++		memset(&con, 0, sizeof(con));
++		if (strlcpy(con.dbname, con_init->dbname, sizeof(con.dbname)) >= sizeof(con.dbname) ||
++			strlcpy(con.rolename, con_init->rolename, sizeof(con.rolename)) >= sizeof(con.rolename))
++			elog(ERROR, "database or role name is too long for squeeze worker");
++		worker->bgw_main_arg = (Datum) SQUEEZE_WIN32_BGWORKER_AUTOSTART;
++		memcpy(worker->bgw_extra, &con, sizeof(con));
++#else
+ 		worker->bgw_main_arg = (Datum) PointerGetDatum(con_init);
++#endif
+ 		dbname = con_init->dbname;
+ 		scheduler = true;
+ 	}
+@@ -857,12 +869,23 @@ squeeze_worker_main(Datum main_arg)
+ 
+ 	if (arg != (Datum) 0)
+ 	{
++#ifdef WIN32
++		WorkerConInitWin32 con;
++
++		if (arg != (Datum) SQUEEZE_WIN32_BGWORKER_AUTOSTART)
++			elog(ERROR, "invalid squeeze worker startup mode");
++
++		memcpy(&con, MyBgworkerEntry->bgw_extra, sizeof(con));
++		am_i_scheduler = true;
++		BackgroundWorkerInitializeConnection(con.dbname, con.rolename, 0);
++#else
+ 		WorkerConInit *con;
+ 
+ 		con = (WorkerConInit *) DatumGetPointer(arg);
+ 		am_i_scheduler = true;
+ 		BackgroundWorkerInitializeConnection(con->dbname, con->rolename, 0	/* flags */
+ 			);
++#endif
+ 	}
+ 	else
+ 	{
+@@ -2043,7 +2066,7 @@ process_task_internal(MemoryContext task_cxt)
+ 		 */
+ 		appendStringInfo(&query,
+ 						 "INSERT INTO squeeze.log(tabschema, tabname, started, finished, ins_initial, ins, upd, del) \
+-VALUES (%s, %s, '%s', clock_timestamp(), %ld, %ld, %ld, %ld)",
++VALUES (%s, %s, '%s', clock_timestamp(), " INT64_FORMAT ", " INT64_FORMAT ", " INT64_FORMAT ", " INT64_FORMAT ")",
+ 						 quote_literal_cstr(NameStr(*relschema)),
+ 						 quote_literal_cstr(NameStr(*relname)),
+ 						 start_ts_str,

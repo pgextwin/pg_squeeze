@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "source": "github",
+  "repository": "Cybertec-PostgreSQL/pg_squeeze",
+  "strategy": "github-releases",
+  "prereleases": false,
+  "stableTagPattern": "^REL(?P<version>[0-9]+_[0-9]+_[0-9]+)$"
+}

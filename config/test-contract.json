@@ -1,0 +1,47 @@
+{
+  "contractVersion": 2,
+  "extension": "pg_squeeze",
+  "smokeTest": {
+    "script": "windows/ci/smoke-test.ps1"
+  },
+  "runtimeRequirements": {
+    "extensionCreation": "required",
+    "preload": "shared",
+    "backgroundWorker": true,
+    "clientExecutable": {
+      "required": false,
+      "packagePaths": []
+    }
+  },
+  "testSetup": {
+    "preload": "shared",
+    "backgroundWorker": true,
+    "settings": [
+      { "name": "wal_level", "value": "logical" }
+    ]
+  },
+  "coverage": {
+    "createExtension": "covered",
+    "backgroundWorker": "covered",
+    "clientExecutable": "not-applicable",
+    "serverLogAssertions": "not-applicable",
+    "upgrade": "not-covered"
+  },
+  "functionalScenarios": [
+    {
+      "id": "squeeze-table-with-index-and-toast",
+      "description": "Creates SQL version 1.9 with shared preload and logical WAL, then runs the upstream table, clustering-index, and TOAST squeeze cases and checks that the data is intact.",
+      "evidence": [
+        "sql-result"
+      ]
+    },
+    {
+      "id": "autostart-and-stop-scheduler",
+      "description": "Restarts the same cluster with scheduler autostart enabled, observes the worker in pg_stat_activity, then calls squeeze.stop_worker() and waits for the worker to exit.",
+      "evidence": [
+        "sql-result",
+        "background-worker-side-effect"
+      ]
+    }
+  ]
+}
