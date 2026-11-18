@@ -17,7 +17,8 @@
     "preload": "shared",
     "backgroundWorker": true,
     "settings": [
-      { "name": "wal_level", "value": "logical" }
+      { "name": "wal_level", "value": "logical" },
+      { "name": "output_plugin_libraries", "value": "pg_squeeze" }
     ]
   },
   "coverage": {

@@ -1,5 +1,5 @@
 diff --git a/pg_squeeze.c b/pg_squeeze.c
-index 13cc0c2..8067e6a 100644
+index 13cc0c2..d13ac77 100644
 --- a/pg_squeeze.c
 +++ b/pg_squeeze.c
 @@ -74,7 +74,7 @@ extern PGDLLIMPORT bool FirstSnapshotSet;
@@ -11,6 +11,30 @@ index 13cc0c2..8067e6a 100644
  #else
  PG_MODULE_MAGIC;
  #endif
+@@ -325,7 +325,6 @@ _PG_init(void)
+  * to the commit 240e0dbacd (in the master branch). It's not worth supporting
+  * lower versions of pg_squeeze on lower versions of PG server.
+  */
+-extern Datum squeeze_table(PG_FUNCTION_ARGS);
+ PG_FUNCTION_INFO_V1(squeeze_table);
+ Datum
+ squeeze_table(PG_FUNCTION_ARGS)
+@@ -3384,7 +3383,6 @@ swap_toast_names(Oid relid1, Oid toastrelid1, Oid relid2, Oid toastrelid2)
+  * Retrieve the "fillfactor" storage option in a convenient way, so we don't
+  * have to parse pg_class(reloptions) value at SQL level.
+  */
+-extern Datum get_heap_fillfactor(PG_FUNCTION_ARGS);
+ 
+ PG_FUNCTION_INFO_V1(get_heap_fillfactor);
+ Datum
+@@ -3410,7 +3408,6 @@ get_heap_fillfactor(PG_FUNCTION_ARGS)
+ /*
+  * Return fraction of free space in a relation, as indicated by FSM.
+  */
+-extern Datum get_heap_freespace(PG_FUNCTION_ARGS);
+ 
+ PG_FUNCTION_INFO_V1(get_heap_freespace);
+ Datum
 diff --git a/pg_squeeze.h b/pg_squeeze.h
 index 96f6b27..8583cee 100644
 --- a/pg_squeeze.h
@@ -53,10 +77,18 @@ diff --git a/pgstatapprox.c b/pgstatapprox.c
  				 errmsg("\"%s\" is not a table, materialized view, or TOAST table",
  						RelationGetRelationName(rel))));
 diff --git a/worker.c b/worker.c
-index 815c4f8..e94f145 100644
+index 815c4f8..2863fef 100644
 --- a/worker.c
 +++ b/worker.c
-@@ -745,8 +745,7 @@ start_worker_internal(bool scheduler, int task_idx,
+@@ -391,7 +391,6 @@ squeeze_stop_worker(PG_FUNCTION_ARGS)
+  * This is a replacement for the squeeze_table() function so that pg_squeeze
+  * >= 1.6 can still expose the functionality via the postgres executor.
+  */
+-extern Datum squeeze_table_new(PG_FUNCTION_ARGS);
+ 
+ PG_FUNCTION_INFO_V1(squeeze_table_new);
+ Datum
+@@ -745,8 +744,7 @@ start_worker_internal(bool scheduler, int task_idx,
   * Convenience routine to allocate the structure in TopMemoryContext. We need
   * it to survive fork and initialization of the worker.
   *
@@ -66,7 +98,7 @@ index 815c4f8..e94f145 100644
   */
  WorkerConInit *
  allocate_worker_con_info(char *dbname, char *rolename)
-@@ -786,7 +785,20 @@ squeeze_initialize_bgworker(BackgroundWorker *worker,
+@@ -786,7 +784,20 @@ squeeze_initialize_bgworker(BackgroundWorker *worker,
  
  	if (con_init != NULL)
  	{
@@ -87,7 +119,7 @@ index 815c4f8..e94f145 100644
  		dbname = con_init->dbname;
  		scheduler = true;
  	}
-@@ -857,12 +869,23 @@ squeeze_worker_main(Datum main_arg)
+@@ -857,12 +868,23 @@ squeeze_worker_main(Datum main_arg)
  
  	if (arg != (Datum) 0)
  	{
@@ -111,7 +143,7 @@ index 815c4f8..e94f145 100644
  	}
  	else
  	{
-@@ -2043,7 +2066,7 @@ process_task_internal(MemoryContext task_cxt)
+@@ -2043,7 +2065,7 @@ process_task_internal(MemoryContext task_cxt)
  		 */
  		appendStringInfo(&query,
  						 "INSERT INTO squeeze.log(tabschema, tabname, started, finished, ins_initial, ins, upd, del) \

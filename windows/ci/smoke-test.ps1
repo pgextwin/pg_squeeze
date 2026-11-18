@@ -13,7 +13,7 @@ $pgCtl = Join-Path $PgRoot 'bin/pg_ctl.exe'
 $psql = Join-Path $PgRoot 'bin/psql.exe'
 $psqlArgs = @('-h', '127.0.0.1', '-p', $PgPort, '-U', 'postgres', '-d', 'postgres',
     '-X', '-v', 'ON_ERROR_STOP=1', '-c', 'SET statement_timeout = 30000')
-$serverOptions = "-p $PgPort -c listen_addresses=127.0.0.1 -c shared_preload_libraries=pg_squeeze -c wal_level=logical"
+$serverOptions = "-p $PgPort -c listen_addresses=127.0.0.1 -c shared_preload_libraries=pg_squeeze -c wal_level=logical -c output_plugin_libraries=pg_squeeze"
 $workerQuery = @'
 SELECT EXISTS (
     SELECT FROM pg_stat_activity
