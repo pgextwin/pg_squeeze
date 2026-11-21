@@ -1,8 +1,8 @@
 # pg_squeeze on Windows
 
-This repository builds [pg_squeeze 1.9.4](https://github.com/Cybertec-PostgreSQL/pg_squeeze/tree/REL1_9_4)
-at commit `400c5f6ae9bc911073a6824e9a19f4d475fb7331` with MSVC for
-PostgreSQL 15–18 on Windows x64. The build applies a Windows compatibility
+This repository builds [pg_squeeze 1.9.6](https://github.com/Cybertec-PostgreSQL/pg_squeeze/tree/REL1_9_6)
+at commit `778d170749988bdb00c1170d2dc5954540368e8b` with MSVC for
+PostgreSQL 15–19 on Windows x64. The build applies a Windows compatibility
 patch to the pinned upstream source.
 
 The smoke test starts a disposable PostgreSQL cluster with logical WAL and
