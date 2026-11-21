@@ -3,16 +3,17 @@
   "name": "pg_squeeze",
   "upstream": {
     "repository": "Cybertec-PostgreSQL/pg_squeeze",
-    "ref": "REL1_9_4",
-    "version": "1.9.4",
-    "commit": "400c5f6ae9bc911073a6824e9a19f4d475fb7331"
+    "ref": "REL1_9_6",
+    "version": "1.9.6",
+    "commit": "778d170749988bdb00c1170d2dc5954540368e8b"
   },
   "postgresql": {
     "majors": [
       15,
       16,
       17,
-      18
+      18,
+      19
     ]
   },
   "windows": {

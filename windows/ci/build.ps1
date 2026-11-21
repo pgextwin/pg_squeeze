@@ -14,6 +14,21 @@ if ($LASTEXITCODE -ne 0 -or $actual -cne $manifest.upstream.commit) {
     throw 'Upstream identity mismatch'
 }
 
+$pgVersion = & (Join-Path $PgRoot 'bin/pg_config.exe') --version
+if ($LASTEXITCODE -ne 0 -or $pgVersion -notmatch '^PostgreSQL (\d+)') {
+    throw "Could not determine PostgreSQL major from pg_config: $pgVersion"
+}
+$pgMajor = [int]$Matches[1]
+
+# The upstream Makefile generates pgstatapprox.c from the server-specific source.
+$pgstatSource = 'pgstatapprox.in.old.c'
+$clStdLine = ''
+if ($pgMajor -ge 19) {
+    $pgstatSource = 'pgstatapprox.in.c'
+    $clStdLine = 'set "CL=/std:c11"'
+}
+Copy-Item (Join-Path $source $pgstatSource) (Join-Path $source 'pgstatapprox.c') -Force
+
 $patch = Join-Path $PSScriptRoot 'pg_squeeze-win32.patch'
 & git -C $source apply --check $patch
 if ($LASTEXITCODE -ne 0) { throw 'Windows adapter does not apply to the pinned source' }
@@ -49,6 +64,7 @@ $buildCmd = Join-Path $env:RUNNER_TEMP 'pg-squeeze-build.cmd'
 @echo off
 call "$devCmd" -arch=x64 -host_arch=x64 >nul
 if errorlevel 1 exit /b %errorlevel%
+$clStdLine
 pushd "$source"
 if errorlevel 1 exit /b %errorlevel%
 cl /nologo /O2 /MD /DWIN32 /DWIN32_NO_STATUS /D_CRT_SECURE_NO_WARNINGS ^

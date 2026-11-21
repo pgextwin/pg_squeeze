@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   windows:
-    uses: pgextwin/build/.github/workflows/build-extension.yml@c832277188470b947efb2eea7102c7317fdca854
+    uses: pgextwin/build/.github/workflows/build-extension.yml@2cb9c5dd6c59ccd70df98124d19688a7ea6c3eb5
     with:
       extension_config_path: config/extension.json
       test_contract_path: config/test-contract.json
