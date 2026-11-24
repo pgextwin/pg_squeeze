@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "distribution": "dll-sql",
+  "sqlVersion": "1.9",
+  "sqlInstallPath": [
+    "1.2",
+    "1.3",
+    "1.4",
+    "1.5",
+    "1.6",
+    "1.7",
+    "1.8",
+    "1.9"
+  ],
+  "files": [
+    {
+      "source": "upstream",
+      "path": "pg_squeeze.dll",
+      "destination": "lib/pg_squeeze.dll",
+      "targets": [
+        "install",
+        "zip"
+      ]
+    },
+    {
+      "source": "upstream",
+      "path": "pg_squeeze.control",
+      "destination": "share/extension/pg_squeeze.control",
+      "targets": [
+        "install",
+        "zip"
+      ]
+    },
+    {
+      "source": "upstream",
+      "path": "pg_squeeze--*.sql",
+      "destination": "share/extension/{fileName}",
+      "targets": [
+        "install",
+        "zip"
+      ],
+      "expectedCount": 8
+    },
+    {
+      "source": "license",
+      "path": "LICENSE",
+      "destination": "LICENSE",
+      "targets": [
+        "zip"
+      ]
+    },
+    {
+      "source": "upstream",
+      "path": "README.md",
+      "destination": "UPSTREAM-README.md",
+      "targets": [
+        "zip"
+      ],
+      "optional": true
+    }
+  ],
+  "packageInfo": [
+    "pg_squeeze Windows package",
+    "==============================",
+    "",
+    "Upstream repository: {upstreamRepository}",
+    "Upstream ref:        {upstreamRef}",
+    "Upstream commit:     {upstreamCommit}",
+    "pg_squeeze version: {version}",
+    "SQL default_version: 1.9",
+    "PostgreSQL major:    {pgMajor}",
+    "PostgreSQL tested:   {pgTested}",
+    "Architecture:        Windows x64",
+    "Compiler:            MSVC x64",
+    "License:             Upstream CYBERTEC license; see LICENSE",
+    "",
+    "This is an unofficial pgextwin Windows package built from the official pg_squeeze source.",
+    "Requires shared_preload_libraries=pg_squeeze and wal_level=logical."
+  ]
+}
